@@ -1,7 +1,7 @@
 # Day 8 - LiDAR-Camera Depth Completion
 
 > **Series 1: Perception | Project 8 of 12**
-> MS Robotics & Autonomous Systems Engineering - Arizona State University - Dec 2026
+> MS Robotics & Autonomous Systems Engineering - Arizona State University - Dec 2026.
 
 ---
 
