@@ -63,7 +63,7 @@ They fail in completely different conditions.
 
 ---
 
-## The Engineering Story
+## The Engineering Story.
 
 ### Why Camera Alone Fails
 
