@@ -35,17 +35,17 @@ They fail in completely different conditions.
 
 ![LiDAR on Camera](https://drive.google.com/uc?id=1A_p_zWbYdJmC7A55ZUHmiUS1e01G6n0q)
 
-### Sparse Depth Map — 4.1% Coverage
+### Sparse Depth Map - 4.1% Coverage
 
 ![Sparse Depth](https://drive.google.com/uc?id=184mB7nw8BqvmI8mwhE2F_PGuBgCSATVG)
 
-### Dense Depth Map — 100% Coverage
+### Dense Depth Map - 100% Coverage
 
 ![Dense Depth](https://drive.google.com/uc?id=1xEb9Ut1Agb8og_smxE9co5NnB-9jhYhw)
 
 ---
 
-## Key Finding — Sensor Fusion Improvement
+## Key Finding - Sensor Fusion Improvement
 
 ![Evaluation Chart](https://drive.google.com/uc?id=1ArAWNBpvsjSQRdJ1c1oTQw2iMH6KNhST)
 
@@ -57,7 +57,7 @@ They fail in completely different conditions.
 | 30-50m | 5.377m MAE | 0.943m MAE | **6x better** |
 | 50m+ | 8.813m MAE | 1.539m MAE | **6x better** |
 
-> Evaluated using 80/20 holdout method — 20% of LiDAR points
+> Evaluated using 80/20 holdout method - 20% of LiDAR points
 > withheld as ground truth. The algorithm never saw test pixels.
 > These are honest numbers, not biased evaluation.
 
@@ -105,7 +105,7 @@ Result: 100% pixel coverage with LiDAR-accurate depths.
 Look at the sparse depth image carefully.
 Some parked cars appear with no depth dots at all.
 
-This is **LiDAR occlusion shadow** — a real physical phenomenon.
+This is **LiDAR occlusion shadow** - a real physical phenomenon.
 
 ```
 The LiDAR shoots laser pulses in straight lines.
@@ -128,7 +128,7 @@ geometric methods like IP-Basic.
 
 ---
 
-## Algorithm — IP-Basic Depth Completion
+## Algorithm - IP-Basic Depth Completion
 
 ```
 INPUT: Sparse depth map (4.1% coverage)
@@ -178,7 +178,7 @@ OUTPUT: Dense depth map (100% coverage)
 
 ```
 Day 2: Camera alone fails at 35m+
-       MAE 8.813m — the problem identified
+       MAE 8.813m - the problem identified
 
 Day 7: LiDAR alone fails below 75m fog visibility
        The second failure mode identified
@@ -250,15 +250,15 @@ day-008-depth-completion/
 
 ---
 
-## Series 1 — Perception Progress
+## Series 1 - Perception Progress
 
 | # | Project | Key Finding | Status |
 |---|---------|-------------|--------|
 | P1.1 | LiDAR Obstacle Detection | 0.4m voxel creates ghost detections | ✅ |
-| P1.2 | Stereo Camera Depth Safety | Camera unsafe beyond 10m — MAE 8.8m at 50m+ | ✅ |
+| P1.2 | Stereo Camera Depth Safety | Camera unsafe beyond 10m - MAE 8.8m at 50m+ | ✅ |
 | P1.3 | PointPillars 3D Detector | 98.9% loss reduction from scratch | ✅ |
-| P1.4 | Multi-Camera BEV Perception | 178 objects from 6 cameras — IPM failure found | ✅ |
-| P1.5 | Multi-Object Tracking SORT | Detector is bottleneck — tracker at 99.9% | ✅ |
-| P1.6 | Semantic Segmentation ROS2 | 52.6 FPS — warmup cost measured | ✅ |
-| P1.7 | Adverse Weather Analysis | Fog unsafe below 75m — rain safe at 100mm/hr | ✅ |
-| P1.8 | LiDAR-Camera Depth Completion | 44x MAE improvement — 108-frame demo | ✅ |
+| P1.4 | Multi-Camera BEV Perception | 178 objects from 6 cameras - IPM failure found | ✅ |
+| P1.5 | Multi-Object Tracking SORT | Detector is bottleneck - tracker at 99.9% | ✅ |
+| P1.6 | Semantic Segmentation ROS2 | 52.6 FPS - warmup cost measured | ✅ |
+| P1.7 | Adverse Weather Analysis | Fog unsafe below 75m - rain safe at 100mm/hr | ✅ |
+| P1.8 | LiDAR-Camera Depth Completion | 44x MAE improvement - 108-frame demo | ✅ |
