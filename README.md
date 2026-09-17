@@ -1,160 +1,123 @@
-# Day 8 - LiDAR-Camera Depth Completion
+# Day 8: LiDAR-Camera Depth Completion
 
-> **Series 1: Perception | Project 8 of 12**
-> MS Robotics & Autonomous Systems Engineering - Arizona State University - Dec 2026.
-
----
-
-## The Problem This Solves
-
-Day 2 of this series proved that cameras fail beyond 35m.
-Day 7 proved that LiDAR fails in dense fog.
-
-Neither sensor is sufficient alone.
-They fail in completely different conditions.
-
-**Day 8 fuses both sensors to cover each other's failures.**
+**Vamshikrishna Gadde | MS Robotics and Autonomous Systems, ASU, Dec 2026**
 
 ---
 
-## Live Demo - 108 KITTI Frames
+## The Problem
 
-*4-panel pipeline: camera → LiDAR projection → sparse depth → dense completed depth*
-
-![Depth Completion Demo](https://drive.google.com/uc?id=1F9BV6Hk5C9BT1JD8r5yv38egV6u4WLuz)
+Day 2 proved cameras fail beyond 35m. Day 7 proved LiDAR fails in dense fog. Neither sensor is sufficient alone. They fail in completely different conditions. Day 8 fuses both to cover each other's failures.
 
 ---
 
-## Results
+## Live Demo: 108 KITTI Frames
 
-### Sparse vs Dense Depth
+![Depth Completion Demo](depth_completion_demo.gif)
 
-![Depth Comparison](https://drive.google.com/uc?id=10LB_X-bip_OFLJYxeIhN6PBBLWoz1GN_)
-
-### LiDAR Points Projected on Camera
-
-![LiDAR on Camera](https://drive.google.com/uc?id=1A_p_zWbYdJmC7A55ZUHmiUS1e01G6n0q)
-
-### Sparse Depth Map - 4.1% Coverage
-
-![Sparse Depth](https://drive.google.com/uc?id=184mB7nw8BqvmI8mwhE2F_PGuBgCSATVG)
-
-### Dense Depth Map - 100% Coverage
-
-![Dense Depth](https://drive.google.com/uc?id=1xEb9Ut1Agb8og_smxE9co5NnB-9jhYhw)
+*4-panel pipeline: camera image, LiDAR projection, sparse depth, dense completed depth.*
 
 ---
 
-## Key Finding - Sensor Fusion Improvement
+## Sparse vs Dense Depth
 
-![Evaluation Chart](https://drive.google.com/uc?id=1ArAWNBpvsjSQRdJ1c1oTQw2iMH6KNhST)
+![Depth Comparison](depth_comparison.png)
+
+![LiDAR on Camera](lidar_on_camera.png)
+
+![Sparse Depth](sparse_depth.png)
+
+*4.1% LiDAR pixel coverage before completion.*
+
+![Dense Depth](dense_depth.png)
+
+*100% coverage after completion.*
+
+---
+
+## Results: Sensor Fusion vs Camera Alone
+
+![Evaluation Chart](evaluation_chart.png)
 
 | Distance Band | Camera Only (Day 2) | Fusion (Day 8) | Improvement |
 |---|---|---|---|
-| 0-10m | 1.039m MAE | 0.024m MAE | **44x better** |
-| 10-20m | 2.302m MAE | 0.236m MAE | **10x better** |
-| 20-30m | 3.819m MAE | 0.498m MAE | **8x better** |
-| 30-50m | 5.377m MAE | 0.943m MAE | **6x better** |
-| 50m+ | 8.813m MAE | 1.539m MAE | **6x better** |
+| 0-10m | 1.039m MAE | 0.024m MAE | 44x better |
+| 10-20m | 2.302m MAE | 0.236m MAE | 10x better |
+| 20-30m | 3.819m MAE | 0.498m MAE | 8x better |
+| 30-50m | 5.377m MAE | 0.943m MAE | 6x better |
+| 50m+ | 8.813m MAE | 1.539m MAE | 6x better |
 
-> Evaluated using 80/20 holdout method - 20% of LiDAR points
-> withheld as ground truth. The algorithm never saw test pixels.
-> These are honest numbers, not biased evaluation.
+Evaluated using 80/20 holdout. 20% of LiDAR points withheld as ground truth, never seen by the algorithm. Honest numbers.
 
 ---
 
-## The Engineering Story.
-
-### Why Camera Alone Fails
-
-A camera gives you a dense beautiful image.
-But it has no depth information.
-A car 5m away and a car 50m away
-look different sizes but the camera
-cannot tell you the exact distance.
-
-Day 2 measured this failure directly:
-camera depth error at 50m+ = 8.813m.
-That is the length of a bus.
-At highway speed this is fatal.
-
-### Why LiDAR Alone Is Not Enough
-
-LiDAR gives accurate depth but only covers
-4.1% of image pixels on a forward camera.
-The other 95.9% has no depth measurement.
-A pedestrian standing between two laser scan lines
-has no measured depth at all.
-
-### Why Fusion Works
-
-Project LiDAR onto the camera image.
-Every LiDAR point now has a pixel location.
-Use camera color to fill the gaps.
-Pixels with similar color to a nearby LiDAR point
-probably belong to the same surface.
-Same surface = similar depth.
-This is guided depth completion.
-
-Result: 100% pixel coverage with LiDAR-accurate depths.
-
----
-
-## Why the Second Car Has No LiDAR Points
-
-Look at the sparse depth image carefully.
-Some parked cars appear with no depth dots at all.
-
-This is **LiDAR occlusion shadow** - a real physical phenomenon.
+## Why Fusion Works
 
 ```
-The LiDAR shoots laser pulses in straight lines.
+Camera:  dense image, no depth information
+         error at 50m+ = 8.813m (Day 2)
+
+LiDAR:   accurate depth, only 4.1% pixel coverage
+         95.9% of pixels have no depth measurement
+
+Fusion:  project LiDAR onto camera image
+         use color similarity to fill gaps
+         pixels with similar color to a nearby
+         LiDAR point belong to the same surface
+         same surface = similar depth
+
+Result:  100% coverage with LiDAR-accurate depths
+```
+
+---
+
+## The LiDAR Occlusion Shadow
+
+Look at the sparse depth image. Some parked cars have zero LiDAR points.
+
+```
+LiDAR shoots laser pulses in straight lines.
 Car A is in front of Car B.
-The pulses hit Car A and return.
+Pulses hit Car A and return.
 They never reach Car B.
 Car B is in the laser shadow of Car A.
-
-This is why Waymo uses 5 LiDAR units
-at different positions on the vehicle.
-Different positions = fewer occlusion shadows.
 ```
 
-Depth completion assigns neighbor depth to occluded pixels.
-This can be wrong. Neural-network based completion
-learns to recognize car shapes and assign
-plausible depths even without LiDAR hits.
-That is why deep learning fusion outperforms
-geometric methods like IP-Basic.
+Depth completion assigns neighbor depth to occluded pixels. This can be wrong. Neural network completion learns to recognize object shapes and assigns plausible depths even without LiDAR hits. That is why deep learning fusion outperforms geometric methods.
 
 ---
 
-## Algorithm - IP-Basic Depth Completion
+## Algorithm: IP-Basic Depth Completion
 
 ```
 INPUT: Sparse depth map (4.1% coverage)
-         |
-Step 1: Small dilation (3x3 kernel)
-         Expands each LiDAR point 1 pixel outward
-         Fills gaps between adjacent scan lines
-         |
-Step 2: Bilateral filter
-         Smooths depth at object boundaries
-         Camera color prevents wrong blending
-         Wall at 30m stays separate from car at 8m
-         |
-Step 3: Large dilation (15x15 kernel)
-         Fills medium holes between objects
-         |
-Step 4: Morphological closing (31x31 kernel)
-         Fills round holes that dilation misses
-         |
-Step 5: Global nearest-neighbor fill
-         Every remaining pixel gets depth of
-         its nearest known LiDAR point
-         Coverage goes from ~60% to 100%
-         |
-Step 6: Final bilateral filter
-         Clean smooth output
+    |
+    v
+Small dilation (3x3)
+    Expands each LiDAR point outward
+    Fills gaps between adjacent scan lines
+    |
+    v
+Bilateral filter
+    Smooths at object boundaries
+    Camera color prevents wrong blending
+    Wall at 30m stays separate from car at 8m
+    |
+    v
+Large dilation (15x15)
+    Fills medium holes between objects
+    |
+    v
+Morphological closing (31x31)
+    Fills round holes dilation misses
+    |
+    v
+Global nearest-neighbor fill
+    Every remaining pixel gets depth of
+    nearest known LiDAR point
+    Coverage goes from ~60% to 100%
+    |
+    v
+Final bilateral filter
 
 OUTPUT: Dense depth map (100% coverage)
 ```
@@ -163,102 +126,53 @@ OUTPUT: Dense depth map (100% coverage)
 
 ## Performance
 
-| Metric | Value |
-|--------|-------|
-| LiDAR input coverage | 4.1% of pixels |
-| Dense output coverage | 100.0% |
-| Completion time | 0.09s per frame |
-| Frames processed | 108 KITTI frames |
-| Evaluation method | 80/20 holdout |
-| GPU | NVIDIA RTX 4050 |
+```
+LiDAR input coverage:   4.1% of pixels
+Dense output coverage:  100.0%
+Completion time:        0.09s per frame
+Frames processed:       108 KITTI frames
+Evaluation method:      80/20 holdout
+```
 
 ---
 
-## How This Connects to the Series
+## What I Learned
+
+The bilateral filter is what makes guided completion work. A naive fill would blur depth across object boundaries, assigning a car's depth to the wall behind it. The bilateral filter uses camera color to prevent this. Pixels with different colors get different weights. The depth stays sharp at boundaries without any explicit edge detection.
+
+The 80/20 holdout evaluation matters more than it sounds. A biased evaluation uses all LiDAR points to fill, then checks the same points. Of course it scores well. Withholding 20% and never showing them to the algorithm gives you a number you can actually trust. The 44x improvement is real because it was measured honestly.
+
+LiDAR occlusion shadows are a physical constraint no algorithm fully solves. Completion assigns plausible depth to shadowed regions but it is an educated guess. Understanding this is what motivates multi-LiDAR setups in production AV systems.
+
+---
+
+## Connection to the Series
 
 ```
-Day 2: Camera alone fails at 35m+
-       MAE 8.813m - the problem identified
-
+Day 2: Camera alone fails at 35m+, MAE 8.813m
 Day 7: LiDAR alone fails below 75m fog visibility
-       The second failure mode identified
-
-Day 8: Fuse both sensors
-       Camera covers LiDAR in fog
-       LiDAR covers camera at range
-       44x improvement at close range
-       6x improvement at far range
-
-Day 9: Use dense depth to predict
-       where pedestrians are going
-       The next layer of the perception stack
+Day 8: Fuse both, 44x improvement at 0-10m, 6x at 50m+
 ```
 
 ---
 
-## Run It Yourself
+## Run It
 
 ```bash
 git clone https://github.com/GVK-Engine/day-008-depth-completion
 cd day-008-depth-completion
 pip install -r requirements.txt
+
+py -3.11 projection.py    # project LiDAR onto camera
+py -3.11 completion.py    # run IP-Basic completion
+py -3.11 evaluate.py      # holdout evaluation
+py -3.11 visualize.py     # 108-frame demo video and GIF
 ```
 
-Update `KITTI_BASE` and `CALIB_DIR` in each file to your KITTI path.
-
-```bash
-# Project LiDAR onto camera image
-py -3.11 projection.py
-
-# Run IP-Basic depth completion
-py -3.11 completion.py
-
-# Evaluate with holdout method
-py -3.11 evaluate.py
-
-# Generate 108-frame video and GIF
-py -3.11 visualize.py
-```
-
-KITTI dataset: https://www.cvlibs.net/datasets/kitti/raw_data.php
-
----
-
-## Project Structure
-
-```
-day-008-depth-completion/
-├── projection.py       LiDAR-to-camera projection using calibration
-├── completion.py       IP-Basic guided depth completion
-├── evaluate.py         Holdout evaluation vs camera-only baseline
-├── visualize.py        108-frame demo video and GIF generator
-├── requirements.txt
-└── results/
-    ├── sparse_depth.png
-    ├── dense_depth.png
-    ├── depth_comparison.png
-    ├── evaluation_chart.png
-    ├── depth_completion_demo.gif
-    └── depth_completion_demo.mp4
-```
+KITTI download: https://www.cvlibs.net/datasets/kitti/raw_data.php
 
 ---
 
 ## Stack
 
 `Python 3.11` `NumPy` `OpenCV` `SciPy` `Matplotlib` `imageio` `KITTI`
-
----
-
-## Series 1 - Perception Progress
-
-| # | Project | Key Finding | Status |
-|---|---------|-------------|--------|
-| P1.1 | LiDAR Obstacle Detection | 0.4m voxel creates ghost detections | ✅ |
-| P1.2 | Stereo Camera Depth Safety | Camera unsafe beyond 10m - MAE 8.8m at 50m+ | ✅ |
-| P1.3 | PointPillars 3D Detector | 98.9% loss reduction from scratch | ✅ |
-| P1.4 | Multi-Camera BEV Perception | 178 objects from 6 cameras - IPM failure found | ✅ |
-| P1.5 | Multi-Object Tracking SORT | Detector is bottleneck - tracker at 99.9% | ✅ |
-| P1.6 | Semantic Segmentation ROS2 | 52.6 FPS - warmup cost measured | ✅ |
-| P1.7 | Adverse Weather Analysis | Fog unsafe below 75m - rain safe at 100mm/hr | ✅ |
-| P1.8 | LiDAR-Camera Depth Completion | 44x MAE improvement - 108-frame demo | ✅ |
